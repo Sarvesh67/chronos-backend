@@ -1,5 +1,5 @@
 var db = {
-    staging: {
+    /* staging: {
         DATABASE_HOST: '/cloudsql/generic-services:asia-south1:services-database',
         DATABASE_NAME: 'services',
         DATABASE_USERNAME: 'services',
@@ -18,13 +18,13 @@ var db = {
         DATABASE_DIALECT: process.env.DATABASE_DIALECT || 'postgres',
         NODE_ENV: process.env.NODE_ENV || 'production',
         SCHEMA: "public",
-    },
+    }, */
 
     rg: {
         DATABASE_HOST: process.env.DATABASE_HOST || 'localhost',
-        DATABASE_NAME: process.env.DATABASE_NAME || 'csa_app',
-        DATABASE_USERNAME: process.env.DATABASE_USERNAME || 'devsoc',
-        DATABASE_PASSWORD: process.env.DATABASE_PASSWORD || 'eatsleepcode',
+        DATABASE_NAME: process.env.DATABASE_NAME || 'chronos',
+        DATABASE_USERNAME: process.env.DATABASE_USERNAME || 'postgres',
+        DATABASE_PASSWORD: process.env.DATABASE_PASSWORD || 'happyhours',
         DATABASE_PORT: process.env.DATABASE_PORT || 5432,
         DATABASE_DIALECT: process.env.DATABASE_DIALECT || 'postgres',
         NODE_ENV: process.env.NODE_ENV || 'development',
@@ -44,10 +44,10 @@ var cache = {
 var config = {
     dialect: "postgres",
     app: {
-        jwtKey: 'insert-a-secret-key-here',
+        jwtKey: 'BrokenHeisenberg',
         sessionKey: "SecretSessionKey",
         port: process.env.PORT || '4192',
-        name: "generic Services API Platform",
+        name: "ChronosApplication",
         local_domain: "http://localhost:" + (process.env.PORT || '4192') + "/api/v1",
     },
 
@@ -59,7 +59,7 @@ var config = {
     apiKeys: {
         sendGrid: ""
     },
-    cloud: {
+    /* cloud: {
         gcp: {
             service_account_path: "./config/creds/firebase-admin-sdk-service-account.json",
             project_id: "generic-services",
@@ -70,7 +70,7 @@ var config = {
                 server_key: "the server key"
             }
         }
-    }
+    } */
 
 };
 

@@ -3,13 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
+    "start": "nodemon ./bin/www",
+    "start:prod": "pm2 start ./bin/www",
     "config": "node config/config.js",
     "db": "node utilities/createdb.js",
-    "build": "docker build -t generic-client-services -f docker/Dockerfile .",
-    "build:docker": "docker build -t generic-client-services -f docker/Dockerfile .",
-    "deploy": "gcloud app deploy --verbosity=info app.yaml",
-    "deploy:appengine": "gcloud app deploy --verbosity=info app.yaml",
     "test": "node testing/tests.js"
   },
   "dependencies": {
@@ -46,5 +43,8 @@
     "speakeasy": "^2.0.0",
     "universal-analytics": "^0.4.20",
     "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "2.0.4"
   }
 }

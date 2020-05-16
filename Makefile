@@ -2,13 +2,16 @@ APP_NAME=generic-services-api
 # Figure out a way to put all of this in package.json
 
 run:
-	npm start
+	docker-compose up
 
 test:
 	npm run test
 
+generate-token:
+	npm run testToken
+	
 install:
-	npm install
+	docker-compose -f docker-compose.builder.yml run --rm install-packages
 
 push:
 	git add --all
@@ -36,16 +39,8 @@ logs:
 
 # Database.
 db:
-	npm run db
+	docker exec -it csa-backend npm run db
 
-# Builds
-docker-build:
-	npm run build:docker
-
-# Deployments
-deploy:
-	npm run deploy
-
-deploy-appengine:
-	npm run deploy:appengine
+db-connect:
+	docker exec -it db psql -U postgres -d csa_app
 

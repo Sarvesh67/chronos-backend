@@ -1,0 +1,45 @@
+version: '3'
+
+# Define the services/containers to be run
+services:
+  chronos-backend: #name of your service
+    container_name: chronos-backend
+    build: ./ # specify the directory of the Dockerfile
+    #image: node:10.19.0
+    command: npm run start
+    ports:
+      - "4193:4193" #specify ports forwarding
+    networks: 
+      - chronos
+    links:
+      - database # link this service to the database service
+    volumes:
+      - nodemodules:/usr/src/app/node_modules
+      - .:/usr/src/app
+    depends_on:
+      - database
+    environment: 
+      DATABASE_URL: postgres://postgres:happyhours@database:5432/chronos 
+    working_dir: /usr/src/app
+
+  database: # name of the service
+    image: postgres:11.7 # specify image to build container from
+    container_name: db
+    environment: 
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: happyhours
+      POSTGRES_DB: chronos
+    networks: 
+      - chronos
+    volumes: 
+      - psql:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+volumes: 
+  nodemodules:
+  psql:
+
+networks: 
+  chronos:
+  
