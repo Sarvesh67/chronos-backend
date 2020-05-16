@@ -39,8 +39,8 @@ logs:
 
 # Database.
 db:
-	docker exec -it csa-backend npm run db
+	docker exec -it chronos-backend npm run db
 
 db-connect:
-	docker exec -it db psql -U postgres -d csa_app
+	docker exec -it chronos-db psql -U postgres -d chronos
 

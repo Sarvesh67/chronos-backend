@@ -1,38 +1,45 @@
 var db = require("../models/db");
 var policies = require("./policies.initial");
 
-
-let users = [];
+// let users = [];
 
 async function public_force(){
     console.log("Public force executed");
-    var user, permission_insert;
+    var user;
 
     // Adding the permissions for the site admin
-    var user = await db.public.login.create({
-        first_name: "Master",
-        middle_name: "Server",
-        last_name: "Admin",
+    user = await db.public.login.create({
+        name: "Master",
         sex: 1
     });
-    var permission_insert = await db.public.permissions.create({
+    /* var permission_insert = await db.public.permissions.create({
         entity_name: '*',
         entity_id: 0,
         status: new Date(),
         role: "*",
         login_id: user.id
-    });
+    }); */
 
-    users.push(user.id);
+    // users.push(user.id);
 
     user = await db.public.login.create({
-        first_name: "Foo",
-        middle_name: "Testing",
-        last_name: "User",
+        name: "Foo",
         sex: 1
     });
 
-    users.push(user.id);
+    // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjMiLCJjcmVhdGVkX2F0IjoiMjAyMC0wNC0wMVQxMjo1ODozMy40NjFaIiwiaWF0IjoxNTg1NzQ2MjAxfQ.T4y7ZdgybRiKdDcIBUid0brrPEaMvhPbZVWmGzc9kWM
+    user = await db.public.login.create({
+        name: 'Sarvesh Shinde',
+        email: 'f20180778@goa.bits-pilani.ac.in'
+    });
+
+    // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQiLCJjcmVhdGVkX2F0IjoiMjAyMC0wNC0wMVQxMjo1ODozMy40NjRaIiwiaWF0IjoxNTg1NzQ2MjAxfQ.KG5T1hpPXPX0BjCiv8BN1_W4nWIutFvJ_-y4ElVxRBY
+    user = await db.public.login.create({
+        name: 'Sarvesh Sandeep Shinde',
+        email: 'SarveshShinde64@gmail.com'
+    });
+
+    // users.push(user.id);
 
 
     // // Create a dummy account for insertions of data.
@@ -58,7 +65,7 @@ async function public_force(){
     return 0;
 }
 
-async function atc_force(){
+/* async function atc_force(){
     console.log('atc force running');
     // insert a couple of strips. for both users.
 
@@ -95,29 +102,30 @@ async function atc_force(){
         }
     }
     return 0;
-}
+} */
 
 async function main(){
-    
-    var schemas = [
+
+    var schema = ['sequelize', true, public_force];
+    /* var schemas = [
         // SchemaName, force_param, force_function(to be executed in case, the force param is true)
         ['public', true, public_force],
-        ['atc', true, atc_force],
+        // ['atc', true, atc_force],
         // ['atc', true, atc_force]
-    ], force_ret = 0;
+    ], force_ret = 0; */
     console.log("Creating the tables");
 
-    for(var schema of schemas){
-        //
-        public_ret = await db[schema[0]].sequelize.sync({ force: schema[1] });
+    //
+    console.log(schema);
+    public_ret = await db[schema[0]].sequelize.sync({ force: schema[1] });
 
-        console.log( schema[0] +  " created");
-        if(schema[1]){
-            force_ret = await schema[2]();
-            console.log(schema[0] + " force param executed " + force_ret);
-        }
-        console.log("\n\n\n\n\n");
+    console.log( schema[0] +  " created");
+    if(schema[1]){
+        force_ret = await schema[2]();
+        console.log(schema[0] + " force param executed " + force_ret);
     }
+    console.log("\n\n\n\n\n");
+    process.exit()
 }
 
 if(require.main == module){

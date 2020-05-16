@@ -22,17 +22,18 @@ const sequelize = new Sequelize(env.DATABASE_NAME, env.DATABASE_USERNAME, env.DA
 //so everything is accessible via one object
 const db = {};
 
+db.connectDb = async() => {
+  try {
+      await sequelize.authenticate()
+      console.log('Connected to postgresDB!')
+  } catch (err) {
+      console.log(err)
+      console.log('Could not connect to postgresdb :(')
+  }
+}
+
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 db.Op = Sequelize.Op;
-
-//Models/tables
-db.login = require('./login.js')(sequelize, Sequelize);
-db.permissions = require('./permissions.js')(sequelize, Sequelize);
-db.policy = require('./policy.js')(sequelize, Sequelize);
-db.kv = require('./kvStore.js')(sequelize, Sequelize);
-
-//Relations
-// db.profile.belongsTo(db.login, {onDelete: "CASCADE"});
 
 module.exports = db;

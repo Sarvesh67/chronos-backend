@@ -21,7 +21,7 @@ var db = {
     }, */
 
     rg: {
-        DATABASE_HOST: process.env.DATABASE_HOST || 'localhost',
+        DATABASE_HOST: process.env.DATABASE_HOST || 'database',
         DATABASE_NAME: process.env.DATABASE_NAME || 'chronos',
         DATABASE_USERNAME: process.env.DATABASE_USERNAME || 'postgres',
         DATABASE_PASSWORD: process.env.DATABASE_PASSWORD || 'happyhours',

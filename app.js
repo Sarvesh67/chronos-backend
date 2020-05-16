@@ -11,6 +11,7 @@ var fileUpload = require('express-fileupload');
 
 var config = require("./config/config");
 var router = require('./routes/index');
+var db = require('./models/db');
 
 var app = express();
 
@@ -71,7 +72,7 @@ app.get("/", function(req, res){
   console.log("Welcome to the app");
   res.status(200).json({
     success: true,
-    message: "Welcome to generic research articles platform"
+    message: "Welcome to chronos application"
   });
 });
 
@@ -107,6 +108,8 @@ app.use(function (err, req, res, next) {
     res.status(200).json({success: true, message: "Welcome to the api. Please register yourself to get an access token."});
   }
 });
+
+db.sequelize.connectDb();
 
 module.exports = app;
 

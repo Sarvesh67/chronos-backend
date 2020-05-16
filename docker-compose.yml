@@ -24,7 +24,7 @@ services:
 
   database: # name of the service
     image: postgres:11.7 # specify image to build container from
-    container_name: db
+    container_name: chronos-db
     environment: 
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: happyhours
