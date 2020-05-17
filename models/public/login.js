@@ -27,6 +27,7 @@ module.exports.Login = sequelize.define('login', {
 
     // Verifications
     email_verified: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    new_user: { type: DataTypes.BOOLEAN , allowNull: false, defaultValue: true },
 
     created_at: {
         type: DataTypes.DATE,

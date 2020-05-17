@@ -10,6 +10,7 @@ var path = require('path');
 var verify = require('../functions/verifyFunc');
 var db = require("../models/db");
 var config = require("../config/config");
+var email = require('../functions/nodemailerFunc');
 
 module.exports.signup = async (req, res) => {
 
@@ -19,7 +20,7 @@ module.exports.signup = async (req, res) => {
             last_name: req.body.lastName, 
             email: req.body.email,
             mobile: req.body.mobileNo,
-            password: req.body.password,
+            password: req.body.password
         };
         // First check for the email or the mobile number here.
         const existingUser = await db.public.login.findOne({
@@ -48,15 +49,27 @@ module.exports.signup = async (req, res) => {
             var auth_data = {
                 email: user.email,
                 id: user.id,
-                created_at: new Date()
+                created_at: new Date(),
+                new_user: true
             };
             
             var token = jwt.sign(auth_data, config.app.jwtKey);
+            const link = config.app.host + '/emailver/' + token;
+            
             // Send email with link here (link should contain jwt token)
+            const mailOptions = {
+                from: 'SarveshShinde64@gmail.com',
+                to: create_object.email,
+                subject: 'Chronos Application Sign-in',
+                text: `The link for email verification for the Chronos application is:
+                       ${link}`
+            }
+            email.sendmail(mailOptions);
             res.status(200).json({
                 success: true,
                 token: token,
-                new_user: true
+                new_user: true,
+                msg: 'A verification email has been sent to you!'
             });
         }    
     } catch (err) {
@@ -72,59 +85,78 @@ module.exports.signup = async (req, res) => {
 };
 
 module.exports.login = async (req, res) => {
-
-    if (!req.body.email || !req.body.password) {
-        console.log(req.body);
-        res.status(500).json({
-            success: false,
-            message: "All fields are required"
-        });
-        return;
-    }
-
-    var email = req.body.email;
-
-    let user = await db.public.login.findOne({
-            where: {
-                email: email
-            }
-        })
-        // .then(user => {
-    if (user) {
-        console.log(user.id);
-        password = crypto.pbkdf2Sync(req.body.password, user.salt, 1000, 512, "sha512").toString('hex');
-
-        if (user.password === password) {
-            // Get user profile
-            
-            var auth_data = {
-                email: user.email,
-                id: user.id,
-                created_at: new Date()
-            };
-            
-            var token = jwt.sign(auth_data, config.app.jwtKey);
-            
-            res.status(200).json({
-                success: true,
-                token: token,
-            });
-        } else {
+    try {
+        if (!req.body.email || !req.body.password) {
+            console.log(req.body);
             res.status(500).json({
                 success: false,
-                message: "Incorrect Password. Please try again."
+                message: "All fields are required"
+            });
+            return;
+        }
+    
+        var email = req.body.email;
+    
+        let user = await db.public.login.findOne({
+                where: {
+                    email: email
+                }
+            })
+            // .then(user => {
+        if (user) {
+            console.log(user.id);
+            if (!user.email_verified) {
+                return res.status(200).json({
+                    success: false,
+                    error: {
+                        msg: 'Your email has not been verified'
+                    }
+                })
+            }
+            password = crypto.pbkdf2Sync(req.body.password, user.salt, 1000, 512, "sha512").toString('hex');
+    
+            if (user.password === password) {
+                // Get user profile
+                
+                var auth_data = {
+                    email: user.email,
+                    id: user.id,
+                    new_user: user.email_verified,
+                    created_at: new Date()
+                };
+                
+                var token = jwt.sign(auth_data, config.app.jwtKey);
+                
+                res.status(200).json({
+                    success: true,
+                    token: token,
+                    new_user: user.email_verified
+                });
+            } else {
+                res.status(200).json({
+                    success: false,
+                    message: "Incorrect Password. Please try again."
+                });
+            }
+    
+        } else {
+            res.status(200).json({
+                success: false,
+                error: {
+                    message: "We could not find your account."
+                }
             });
         }
-
-    } else {
-        res.status(500).json({
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
             success: false,
             error: {
-                message: "We could not find your account."
+                err: err,
+                msg: 'Internal server error'
             }
-        });
-    }
-
+        })
+    } 
 };
 
 // Confirm email code here.
@@ -248,6 +280,7 @@ module.exports.updatePass = async (req, res) => {
 module.exports.profile = async(req, res) => {
     try {
         const validated_data = req.body;
+        validated_data.new_user = false;
         const user_data = await db.public.login.update(validated_data, { 
             where: {
                 id: req.user.id

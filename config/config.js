@@ -49,6 +49,7 @@ var config = {
         port: process.env.PORT || '4192',
         name: "ChronosApplication",
         local_domain: "http://localhost:" + (process.env.PORT || '4192') + "/api/v1",
+        host: process.env.host || "http://localhost:4192"
     },
 
     db: {
