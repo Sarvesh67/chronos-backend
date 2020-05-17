@@ -1,12 +1,14 @@
 var nodemailer = require('nodemailer');
+var config = require('../config/config.js');
 
+// console.log(config.apiKeys.sendGrid.password)
 var transporter = nodemailer.createTransport({
     host: "smtp.sendgrid.net",
     port: 587,
     secure: false, // true for 465, false for other ports
     auth: {
-      user: 'apikey', // generated ethereal user
-      pass: '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', // generated ethereal password
+      user: config.apiKeys.sendGrid.user, // generated ethereal user
+      pass: config.apiKeys.sendGrid.password, // generated ethereal password
     },
 });
   

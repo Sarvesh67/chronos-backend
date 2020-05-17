@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 var db = {
     /* staging: {
         DATABASE_HOST: '/cloudsql/generic-services:asia-south1:services-database',
@@ -58,7 +60,10 @@ var config = {
     },
 
     apiKeys: {
-        sendGrid: ""
+        sendGrid: {
+            user: process.env.SENDGRID_USER,
+            password: process.env.SENDGRID_PASS
+        }
     },
     /* cloud: {
         gcp: {

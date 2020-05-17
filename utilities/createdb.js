@@ -27,10 +27,10 @@ async function public_force(){
     });
 
     // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjMiLCJjcmVhdGVkX2F0IjoiMjAyMC0wNC0wMVQxMjo1ODozMy40NjFaIiwiaWF0IjoxNTg1NzQ2MjAxfQ.T4y7ZdgybRiKdDcIBUid0brrPEaMvhPbZVWmGzc9kWM
-    user = await db.public.login.create({
+    /* user = await db.public.login.create({
         name: 'Sarvesh Shinde',
         email: 'f20180778@goa.bits-pilani.ac.in'
-    });
+    }); */
 
     // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQiLCJjcmVhdGVkX2F0IjoiMjAyMC0wNC0wMVQxMjo1ODozMy40NjRaIiwiaWF0IjoxNTg1NzQ2MjAxfQ.KG5T1hpPXPX0BjCiv8BN1_W4nWIutFvJ_-y4ElVxRBY
     user = await db.public.login.create({

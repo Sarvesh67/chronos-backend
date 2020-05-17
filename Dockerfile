@@ -2,7 +2,7 @@ FROM node:10.20.0
 
 WORKDIR /usr/src/app
 
-COPY package.json* ./
+COPY package*.json ./
 #COPY package-lock.json /app && COPY package-lock.json
 
 RUN npm install --save-exact

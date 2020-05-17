@@ -55,8 +55,10 @@ module.exports.signup = async (req, res) => {
             
             var token = jwt.sign(auth_data, config.app.jwtKey);
             const link = config.app.host + '/emailver/' + token;
+            console.log(link);
             
             // Send email with link here (link should contain jwt token)
+            console.log(create_object.email);
             const mailOptions = {
                 from: 'SarveshShinde64@gmail.com',
                 to: create_object.email,
@@ -275,6 +277,20 @@ module.exports.updatePass = async (req, res) => {
             }
         });
     }
+}
+
+module.exports.passresetMail = async (req, res) => {
+    try {
+        // Send mail for password reset
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            success: false,
+            error: {
+                message: "Internal server error."
+            }
+        });
+    } 
 }
 
 module.exports.profile = async(req, res) => {
