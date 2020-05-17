@@ -15,6 +15,7 @@ module.exports.authenticate = (req, res, next) => {
     }   
     try {
         const auth_data = jwt.verify(token, JWTKEY);
+        req.user = auth_data;
         return next();
     } catch (err) {
         console.log(err);

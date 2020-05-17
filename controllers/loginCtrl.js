@@ -15,19 +15,19 @@ module.exports.signup = async (req, res) => {
 
     try {
         var create_object = {
+            first_name: req.body.firstName,
+            last_name: req.body.lastName, 
             email: req.body.email,
-            mobile: req.body.mobile,
+            mobile: req.body.mobileNo,
             password: req.body.password,
         };
-    
         // First check for the email or the mobile number here.
         const existingUser = await db.public.login.findOne({
             where: {
-                [db.Op]: [{
-                        email: create_object.email
-                    }, {
-                        mobile: create_object.mobile
-                    }]
+                $or: {
+                    email: create_object.email,
+                    mobile: create_object.mobile
+                }
             }
         });
         if (existingUser) {
@@ -44,9 +44,7 @@ module.exports.signup = async (req, res) => {
             // Hashed password and it's respective salt.
             create_object.password = password;
             create_object.salt = salt;
-    
-            await db.public.login.create(create_object);
-    
+            const user = await db.public.login.create(create_object);
             var auth_data = {
                 email: user.email,
                 id: user.id,
@@ -54,7 +52,7 @@ module.exports.signup = async (req, res) => {
             };
             
             var token = jwt.sign(auth_data, config.app.jwtKey);
-            // Send email with link here (link should containe jwt token)
+            // Send email with link here (link should contain jwt token)
             res.status(200).json({
                 success: true,
                 token: token,
@@ -109,7 +107,6 @@ module.exports.login = async (req, res) => {
             
             res.status(200).json({
                 success: true,
-                auth: auth_data,
                 token: token,
             });
         } else {
@@ -189,7 +186,14 @@ module.exports.confirmEmail = async (req, res) => {
 module.exports.updatePass = async (req, res) => {
     try {
         const token = req.headers.token;
-
+        if (!token) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    msg: 'Bad request. No token found'
+                }
+            })
+        }
         const user = verify.user(token);
         if (user.error) {
             return res.status(400).json({
@@ -212,7 +216,7 @@ module.exports.updatePass = async (req, res) => {
 
         var password = req.body.password;
         var salt = crypto.randomBytes(16).toString('hex');
-        var hashed_password = crypto.pbkdf2Sync(create_object.password, salt, 1000, 512, "sha512").toString('hex');
+        var hashed_password = crypto.pbkdf2Sync(password, salt, 1000, 512, "sha512").toString('hex');
 
         const update_body = {
             password: hashed_password,
@@ -244,11 +248,16 @@ module.exports.updatePass = async (req, res) => {
 module.exports.profile = async(req, res) => {
     try {
         const validated_data = req.body;
-        const user_data = await db.public.login.create(validated_data, { returning: true });
+        const user_data = await db.public.login.update(validated_data, { 
+            where: {
+                id: req.user.id
+            },
+            returning: true
+        });
 
         return res.status(200).json({
             success: true,
-            user: user_data
+            user: user_data[1][0]
         })
     } catch (err) {
         console.log(err);
@@ -266,7 +275,7 @@ module.exports.dashboard = async (req, res) => {
     try {
         const students = await db.public.login.findAll({
             // Define attributes here
-            attributes:[]
+            // attributes:[]
         })
 
         return res.status(200).json({

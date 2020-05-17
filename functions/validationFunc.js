@@ -3,11 +3,12 @@ const Joi = require('@hapi/joi');
 // Validation for registration details
 module.exports.loginvalidation = (req, res, next) => {
     const schema = Joi.object({
-        email: Joi.string().email().required()
+        email: Joi.string().email().required(),
+        password: Joi.string().required()
     });
     const { data, error } = schema.validate(req.body);
     if (error) {
-        // console.log(error);
+        console.log(error);
         return res.status(400).json({
             success: false,
             error: 'The email address entered is not a valid email'
@@ -49,7 +50,7 @@ module.exports.signupvalidation = (req, res, next) => {
     });
     const { data, error } = schema.validate(req.body);
     if (error) {
-        // console.log(error);
+        console.log(error);
         return res.status(400).json({
             success: false,
             error: 'Invalid fields constraints. Bad request'

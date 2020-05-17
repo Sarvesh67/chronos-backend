@@ -1,5 +1,4 @@
 var db = require("../models/db");
-var policies = require("./policies.initial");
 
 // let users = [];
 
