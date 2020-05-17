@@ -64,7 +64,7 @@ module.exports.signup = async (req, res) => {
                 text: `The link for email verification for the Chronos application is:
                        ${link}`
             }
-            email.sendmail(mailOptions);
+            email.mail(mailOptions);
             res.status(200).json({
                 success: true,
                 token: token,
@@ -268,7 +268,7 @@ module.exports.updatePass = async (req, res) => {
         })
     } catch (err) {
         console.log(err);
-        res.status(500).json({
+        res.status(200).json({
             success: false,
             error: {
                 message: "We could not find your account."
