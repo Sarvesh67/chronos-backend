@@ -8,7 +8,7 @@ services:
     #image: node:10.19.0
     command: npm run start
     ports:
-      - "4193:4193" #specify ports forwarding
+      - "4192:4192" #specify ports forwarding
     networks: 
       - chronos
     links:
