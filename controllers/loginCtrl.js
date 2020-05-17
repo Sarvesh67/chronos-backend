@@ -7,128 +7,73 @@ var nunjucks = require("nunjucks");
 var fs = require('fs');
 var path = require('path');
 
+var verify = require('../functions/verifyFunc');
 var db = require("../models/db");
 var config = require("../config/config");
-var utilities = require("../utilities/utilities");
 
-module.exports.register = async function (req, res) {
+module.exports.signup = async (req, res) => {
 
-
-
-    var create_object = {
-        email: req.body.email,
-        mobile: req.body.mobile,
-        password: req.body.password,
-    };
-
-    for (var i in create_object) {
-        if (!create_object[i]) {
-            console.log("No " + i);
-            res.status(500).json({
-                success: false,
-                message: i + "is a required field"
-            });
-            return;
-        }
-    }
-
-    // First check for the email or the mobile number here.
-
-    db.public.login.findAll({
+    try {
+        var create_object = {
+            email: req.body.email,
+            mobile: req.body.mobile,
+            password: req.body.password,
+        };
+    
+        // First check for the email or the mobile number here.
+        const existingUser = await db.public.login.findOne({
             where: {
-                [db.public.Op.or]: [{
+                [db.Op]: [{
                         email: create_object.email
-                    },
-                    {
+                    }, {
                         mobile: create_object.mobile
-                    }
-                ]
+                    }]
             }
-        })
-        .then(existingUser => {
-            console.log("The existing users are");
-            // console.log(existingUser);
-            if (existingUser.length > 0) {
-                console.log("The email or mobile already exists");
-                console.log(create_object);
-                res.status(200).json({
-                    success: false,
-                    error: {
-                        message: "The user with the email or mobile number already exists"
-                    }
-                });
-                return;
-            }
-            ////////////////////
+        });
+        if (existingUser) {
+            return res.status(200).json({
+                success: false,
+                error: {
+                    message: "The user with the email or mobile number already exists"
+                }
+            });
+        } else {
             var salt = crypto.randomBytes(16).toString('hex');
             var password = crypto.pbkdf2Sync(create_object.password, salt, 1000, 512, "sha512").toString('hex');
-
-            create_object.password = password; // Hashed password.
+    
+            // Hashed password and it's respective salt.
+            create_object.password = password;
             create_object.salt = salt;
-
-            db.public.login.create(create_object)
-                .then(login_data => {
-                    var auth_data = {
-                        role: login_data.role,
-                        email: login_data.email,
-                        id: login_data.id,
-                        created_at: new Date()
-                    };
-
-                    var token = jwt.sign(auth_data, config.app.jwtKey);
-
-                    res.status(200).json({
-                        success: true,
-                        token: token
-                    });
-                })
-                .catch(function (err) {
-                    console.log(err);
-                    res.status(500).json({
-                        success: false
-                    });
-                });
-            //////////////////////////////
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({
-                success: false
-            })
-        })
-};
-
-module.exports.checkField = function (req, res) {
-
-    var search_kv = {};
-    search_kv[req.query.field] = req.query.value;
-
-    console.log("The search kv is");
-    console.log(search_kv);
-
-    db.public.login.findAll(search_kv)
-        .then(user_records => {
-            if (user_records.length > 0) {
-                search_kv.exists = true;
-            } else {
-                search_kv.exists = false;
-            }
-
+    
+            await db.public.login.create(create_object);
+    
+            var auth_data = {
+                email: user.email,
+                id: user.id,
+                created_at: new Date()
+            };
+            
+            var token = jwt.sign(auth_data, config.app.jwtKey);
+            // Send email with link here (link should containe jwt token)
             res.status(200).json({
                 success: true,
-                result: search_kv
-            })
+                token: token,
+                new_user: true
+            });
+        }    
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            error: {
+                err: err,
+                msg: 'Internal server error'
+            }
         })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({
-                success: false
-            })
-        })
+    }
+};
 
-}
-
-module.exports.login = async function (req, res) {
+module.exports.login = async (req, res) => {
 
     if (!req.body.email || !req.body.password) {
         console.log(req.body);
@@ -155,7 +100,6 @@ module.exports.login = async function (req, res) {
             // Get user profile
             
             var auth_data = {
-                role: user.role,
                 email: user.email,
                 id: user.id,
                 created_at: new Date()
@@ -187,28 +131,155 @@ module.exports.login = async function (req, res) {
 };
 
 // Confirm email code here.
-module.exports.confirmEmail = async function (req, res) {
+module.exports.confirmEmail = async (req, res) => {
 
-    var token = req.params.email_token;
+   try {
+    const token = req.params.token;
 
-    var user_credentials = utilities.decryptJWTWithToken(token);
+    var user = verify.user(token);
+    if (user.error) {
+        return res.status(400).json({
+            success: false,
+            error: {
+                msg: 'Invalid auth token'
+            }
+        })
+    }
+    const user_credentials = user.user_cred;
 
-    ////////////////////////////////
-    var update_data = {
-        email_verified: new Date()
-    };
+    // Expires in 2 hrs (or 7200000 milliseconds)
+    if (Math.abs(Date.now() - user_credentials.created_at) > 7200000) {
+        return res.status(200).json({
+            success: false,
+            error: {
+                msg: 'The link fo remail verification has expired. Pls try again'
+            }
+        })
+    }
 
-    let update_resp = await db.public.login.update(update_data, {
-            where: {
-                id: user_credentials.id,
-                email: user_credentials.email
-            },
-            returning: true,
-            plain: true
+    const update_body = {
+        email_verified: true
+    }
+    let update_resp = await db.public.login.update(update_body, {
+        where: {
+            id: user_credentials.id,
+            email: user_credentials.email
+        },
+        returning: true
     });
-    res.status(200).json({
+
+    return res.status(200).json({
         success: true,
-        update_data: update_resp
+        login_data: update_resp[1][0],
+        msg: 'Email Verified. You can proceed to dashboard.'
     });
+   } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+        success: false,
+        error: {
+            err: err,
+            msg: 'Internal server error'
+        }
+    })
+   }
 };
 
+// Update forgotten password
+module.exports.updatePass = async (req, res) => {
+    try {
+        const token = req.headers.token;
+
+        const user = verify.user(token);
+        if (user.error) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    msg: 'Invalid auth token'
+                }
+            })
+        }
+        const user_credentials = user.user_cred;
+        // Expires in 2 hrs (or 7200000 milliseconds)
+        if (Math.abs(Date.now() - user_credentials.created_at) > 7200000) {
+            return res.status(200).json({
+                success: false,
+                error: {
+                    msg: 'The link for password reset has expired. Pls try again'
+                }
+            })
+        }
+
+        var password = req.body.password;
+        var salt = crypto.randomBytes(16).toString('hex');
+        var hashed_password = crypto.pbkdf2Sync(create_object.password, salt, 1000, 512, "sha512").toString('hex');
+
+        const update_body = {
+            password: hashed_password,
+            salt: salt
+        }
+
+        var update_resp = await db.public.login.update(update_body, {
+            where: {
+                id: user_credentials.id
+            },
+            returning: true,
+        });
+
+        return res.status(200).json({
+            success: true,
+            msg: 'You can sign in again with your new password.'
+        })
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            success: false,
+            error: {
+                message: "We could not find your account."
+            }
+        });
+    }
+}
+
+module.exports.profile = async(req, res) => {
+    try {
+        const validated_data = req.body;
+        const user_data = await db.public.login.create(validated_data, { returning: true });
+
+        return res.status(200).json({
+            success: true,
+            user: user_data
+        })
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            success: false,
+            error: {
+                message: "Internal server error."
+            }
+        });
+    } 
+}
+
+// Function to get for dashboard
+module.exports.dashboard = async (req, res) => {
+    try {
+        const students = await db.public.login.findAll({
+            // Define attributes here
+            attributes:[]
+        })
+
+        return res.status(200).json({
+            success: true,
+            students: students
+        })
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            success: false,
+            error: {
+                message: "Internal server error."
+            }
+        });
+    }
+}

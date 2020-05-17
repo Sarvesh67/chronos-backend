@@ -1,12 +1,11 @@
 const jwt = require('jsonwebtoken')
 var config = require("../config/config")
-const JWTKEY = config.app.jwtKey
-var passport = require('passport');
+const JWTKEY = config.app.jwtKey;
 
-// @Passport middleware sends 401 Unauthorized in case authentication fails (by default)
-module.exports.user = passport.authenticate('jwt', { session: false });
+const Promise = require('bluebird');
 
-module.exports.role = (req, res, next) => {
+// This is the middleware for authentication
+module.exports.authenticate = (req, res, next) => {
     const token = req.headers.token;
     if (!token) {
         return res.status(401).json({
@@ -16,116 +15,27 @@ module.exports.role = (req, res, next) => {
     }   
     try {
         const auth_data = jwt.verify(token, JWTKEY);
-        const role = auth_data.role;
-        console.log(role);
-        // To check if admin exists
-        var condition = role === 0 || role === 1 || role === 2;
-        console.log(condition);
-        if (condition) {
-            req.user = auth_data;
-            return next();
-        }
-        else {
-            return res.status(401).json({
-                success: false,
-                error: "Unauthorized entry"
-            })
-        }
+        return next();
     } catch (err) {
         console.log(err);
-        return res.status(500).json({
+        return res.status(401).json({
             success: false,
-            error: 'Unauthorised user or role.'
+            error: 'Unauthorised user.'
         });
     }
 }
 
-module.exports.roleCSA = (req, res, next) => {
-    const token = req.headers.token;
-    if (!token) {
-        return res.status(401).json({
-            success: false,
-            error: 'Access denied. No token found.'
-        })
-    }
+// This function decrypts a valid jwt token
+module.exports.user = (token) => {
     try {
-        const auth_data = jwt.verify(token, JWTKEY);
-        const role = auth_data.role;
-        if (role === 0) {
-            req.user = auth_data;
-            return next();
-        }
-        else {
-            return res.status(401).json({
-                success: false,
-                error: "Unauthorized entry"
-            })
+        const user_cred = jwt.verify(token, JWTKEY);
+        return {
+            user_cred: user_cred,
+            error: false
         }
     } catch (err) {
-        console.log(err);
-        return res.status(500).json({
-            success: false,
-            error: 'Unauthorised user or role.'
-        });
-    }
-}
-
-module.exports.roleCordi = (req, res, next) => {
-    const token = req.headers.token;
-    if (!token) {
-        return res.status(401).json({
-            success: false,
-            error: 'Access denied. No token found.'
-        })
-    }
-    try {
-        const auth_data = jwt.verify(token, JWTKEY);
-        const role = auth_data.role;
-        if (role === 0 || role === 1) {
-            req.user = auth_data;
-            return next();
+        return {
+            error: true
         }
-        else {
-            return res.status(401).json({
-                success: false,
-                error: "Unauthorized entry"
-            })
-        }
-    } catch (err) {
-        console.log(err);
-        return res.status(500).json({
-            success: false,
-            error: 'Unauthorised user or role.'
-        });
-    }
-}
-
-module.exports.roleComplaints = (req, res, next) => {
-    const token = req.headers.token;
-    if (!token) {
-        return res.status(401).json({
-            success: false,
-            error: 'Access denied. No token found.'
-        })
-    }
-    try {
-        const auth_data = jwt.verify(token, JWTKEY);
-        const role = auth_data.role;
-        if (role === 0 || role === 2) {
-            req.user = auth_data;
-            return next();
-        }
-        else {
-            return res.status(401).json({
-                success: false,
-                error: "Unauthorized entry"
-            })
-        }
-    } catch (err) {
-        console.log(err);
-        return res.status(500).json({
-            success: false,
-            error: 'Unauthorised user or role.'
-        });
     }
 }

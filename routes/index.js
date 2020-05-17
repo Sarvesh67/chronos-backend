@@ -1,14 +1,21 @@
 var express = require('express');
 var router = express.Router();
 
+var verify = require('../functions/verifyFunc');
+var validate = require('../functions/validationFunc');
+
 // var themes = require("../controllers/themeCtrl");
 // var atcStrip = require("../controllers/atcStripCtrl");
 var login = require("../controllers/loginCtrl");
 var crud = require("../controllers/crud");
 
-// // Login and onboarding
-// router.post("/register", login.register);
-// router.post("/login", login.login);
+// Login and onboarding
+router.post("/signup", validate.signupvalidation, login.signup);
+router.post("/login", validate.loginvalidation, login.login);
+router.post("/emailver/:token", login.confirmEmail);
+router.post("/updatePass", login.updatePass);
+router.post("/completeProfile", verify.authenticate, validate.profilevalidation, login.profile);
+router.get("/dashboard", verify.authenticate, login.dashboard);
 
 
 // // ATC and the ATC Strips
@@ -22,8 +29,6 @@ var crud = require("../controllers/crud");
 // router.get("/get/user/team", login.getUserTeams);
 // router.get('/search/user', login.userFullTs);
 
-router.post('/create/kv', crud.create);
-router.get('/get/kv', crud.get);
 
 
 module.exports = router;

@@ -1,7 +1,5 @@
 var db = require("../models/db");
 var config = require("../config/config");
-var utilities = require("../utilities/utilities");
-
 
 async function create(req, res){
     

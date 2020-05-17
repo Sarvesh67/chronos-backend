@@ -14,6 +14,7 @@ module.exports.Login = sequelize.define('login', {
     email: { type: DataTypes.TEXT },
     mobile: { type: DataTypes.TEXT },
     password: { type: DataTypes.TEXT },
+    salt: { type: DataTypes.TEXT },
 
     city: { type: DataTypes.TEXT },
     college: { type: DataTypes.TEXT },
